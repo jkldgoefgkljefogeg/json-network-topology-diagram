@@ -1,0 +1,777 @@
+
+<html>
+<head>
+  <title>Network Diagram v0.7beta</title>
+    <link rel="stylesheet" type="text/css" href="./css/ext-all.css" />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/Strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Open-jACOB Draw2D :: ResizeImage</title>
+        <!-- common, all times required, imports -->
+        <SCRIPT src='wz_jsgraphics.js'></SCRIPT>             <SCRIPT src='draw2d.js'></SCRIPT>
+
+        <!-- demo specific imports -->
+	<SCRIPT src="ResizeImage.js"></SCRIPT>
+	<SCRIPT src="ContextmenuConnection.js"></SCRIPT>
+	<SCRIPT src="MyInputPort.js"></SCRIPT>
+	<SCRIPT src="MyOutputPort.js"></SCRIPT>
+	<script src="JSONSerializer.js"></script>
+	<script src="DiagramFigure.js"></script>
+<!-- use this imports if you whant the ExtJs native implementation
+
+    <script type="text/javascript" src="./ext-base.js"></script> 
+-->
+
+<!-- use this imports if you prefere jquery
+
+    <script type="text/javascript" src="./adapter/jquery/jquery.js"></script> 
+    <script type="text/javascript" src="./adapter/jquery/jquery-plugins.js"></script>
+    <script type="text/javascript" src="./adapter/jquery/ext-jquery-adapter.js"></script>
+-->
+
+<!-- use this import if you prefere prototype -->
+
+    <script type="text/javascript" src="./adapter/prototype/prototype.js"></script>
+<!--
+    <script type="text/javascript" src="./adapter/prototype/effects.js"></script> 
+    <script type="text/javascript" src="./adapter/prototype/scriptaculous.js"></script>
+    <script type="text/javascript" src="./adapter/prototype/ext-prototype-adapter.js"></script>
+-->
+
+<!-- use this imports if you whant use the Yahoo utility methods -->
+    <link rel="stylesheet" type="text/css" href="./css/xtheme-aero.css" />
+    <script type="text/javascript" src="./adapter/yui/yui-utilities.js"></script>
+    <script type="text/javascript" src="./adapter/yui/ext-yui-adapter.js"></script>
+
+
+    <script type="text/javascript" src="ext-all.js"></script>
+<script type="text/javascript">
+
+function addOnloadHandler(elementObject, functionObject)
+{
+  if(typeof(appLog) != 'undefined') {
+    //appLog("addOnloadHandler: " + elementObject.id);
+  }
+  if(document.addEventListener) {
+    elementObject.addEventListener('load', function(e) { functionObject(elementObject); }, false);
+  } else {
+    if(document.attachEvent) {
+      elementObject.onreadystatechange = function(e) {
+         // From: http://simonwillison.net/2004/May/26/addLoadEvent/
+         // modded since MSIE showed the state as "loaded"
+         var state = elementObject.readyState;
+         // && state != "interactive"  "complete"
+         //appLog("LOADING: " + elementObject.id + ": "+ state);
+
+         // MSIE gives the state of "complete" for the last loaded object
+         if (state != "loaded" && state != "complete") {
+           return;
+         }
+         //elementObject.onreadystatechange = null;
+         functionObject(elementObject);
+         };
+    } else {
+      alert("Could not bind the onLoad handler to an element!");
+    }
+  }
+}
+
+function removeElement(e) {
+  var aNodeToRemove = e;// : document.getElementById(e);
+  if (aNodeToRemove.parentNode) {
+    aNodeToRemove.parentNode.removeChild(aNodeToRemove);
+  }
+}
+
+function bootstrapGetLoadScriptNode(aURI)
+{
+  var element;
+  var aID = "script_" + aURI.replace(/[\/\.:-]/g,"_");
+  removeElement(aID);
+  element = document.createElement("script");
+  element.setAttribute('id',aID);
+
+  aURI = aURI + "?_=" + (new Date()).getTime();
+
+  element.setAttribute('src',aURI);
+  element.setAttribute('type', "text/javascript");
+
+  return element;
+}
+
+
+function loadJavaScript(aURI, aCallback)
+{
+  var element = bootstrapGetLoadScriptNode(aURI);
+  addOnloadHandler(element, function(el) {
+     aCallback(element);
+  } );
+  document.getElementsByTagName('head')[0].appendChild(element);
+  //document.body.appendChild(element);
+}
+
+
+function createNewDiv(aID)
+{
+  var txt = document.createElement('P');
+  var div = document.createElement('span');
+  div.setAttribute('id', aID);
+  txt.setAttribute('id', aID + "_txt");
+  div.appendChild(txt);
+  return div;
+}
+
+function loadJSONtext(aText) 
+{
+  new JSONSerializer().fromJSON(Ext.util.JSON.decode(aText));
+}
+
+function loadJSON(aFile) 
+{
+  loadJavaScript(aFile, function(el) {
+    new JSONSerializer().fromJSON(json_diagram);
+  });
+}
+
+function addDragIcon(aName, aWhere) 
+{
+  loadJavaScript("icons/" + aName + ".js", function() { 
+     if (document.getElementById("cont_" + aName)) {
+       return;
+     }
+     var div = document.getElementById(aWhere);
+     var cdiv = createNewDiv("cont_" + aName);
+     var html = '';
+     html = html + aName + "<img src='icons/" + aName + ".png' id='drag_" + aName + "' style='cursor:move'/><br><br>\n";
+     cdiv.innerHTML = html;
+     div.appendChild(cdiv);
+     var dragsource=new Ext.dd.DragSource('drag_' + aName, {ddGroup:'TreeDD',dragData:{name: aName}});
+     } );
+}
+
+function addDragIconPic(aName, aWhere, aPic) 
+{
+     if (document.getElementById("cont_" + aName)) {
+       return;
+     }
+     var div = document.getElementById(aWhere);
+     var cdiv = createNewDiv("cont_" + aName);
+     var html = '';
+     html = html + "<center>";
+     html = html + "<h1>" + aName + "</h1>\n";
+     html = html + "<img src='" + aPic + "' id='drag_" + aName + "' style='cursor:move'/>\n";
+     html = html + "<hr size=1 noshade>\n";
+     html = html + "</center>";
+
+     cdiv.innerHTML = html;
+     div.appendChild(cdiv);
+     var dragsource=new Ext.dd.DragSource('drag_' + aName, {ddGroup:'TreeDD',dragData:{name: 'DiagramFigure', type: aName, pic: aPic }});
+
+}
+
+function addDragIcon2(aName, aWhere)
+{
+  var aPic = "icons/" + aName + ".png";
+  addDragIconPic(aName, aWhere, aPic);
+}
+
+function addLibraryIcon(aName)
+{
+  addDragIcon2(aName, "icons_div");
+}
+
+function addLibraryIconText(aName) 
+{
+  var txt = document.createElement('P');
+  txt.innerHTML = '<a href="javascript:addLibraryIcon(\'' + aName + '\');">' + aName + '</a>';
+  document.getElementById("library_div").appendChild(txt);
+
+}
+
+function createNewIconDiv(aID)
+{
+  var txt = document.createElement('P');
+  var div = document.createElement('span');
+  div.setAttribute('id', aID);
+  txt.setAttribute('id', aID + "_txt");
+  div.appendChild(txt);
+  document.getElementById("icons_div").appendChild(div);
+  return div;
+}
+
+function doSaveJSON()
+{
+  var txt = Ext.util.JSON.encode(new JSONSerializer().toJSON(workflow.getDocument()));
+  txt = txt.replace(/,"/g, ', "');
+  document.getElementById('json_text').value = "json_diagram = " + txt + "\n\n\n\n";
+  //document.getElementById('json_text').innerHTML = "json_diagram = " + txt + ";\n\n\n\n";
+}
+
+function doLoadJSONFromURL()
+{
+  loadJSON(document.getElementById('json_load_url').value);
+}
+
+function doLoadJSON()
+{
+  loadJSONtext(document.getElementById('json_text').value);
+}
+
+function getQueryVariable(variable) {
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    if (pair[0] == variable) {
+      return unescape(pair[1]);
+    }
+  } 
+  return "";
+}
+
+</script>
+
+</head>
+<body>
+  <div id="toolbar"></div>
+  <div id="library_div">
+       <!-- <p><a href="javascript:loadJSON('test.json');">Load test</a> -->
+       Click on the names to add the icons to the "Icons" tab
+       <hr size=1 noshade>
+  </div>
+  <div id="icons_div">
+  <!--
+      <center>
+  <a href="javascript:addDragIcon('workstation2', 'icons_div');">Workstation</a>
+  <a href="javascript:addDragIcon('annotation', 'icons_div');">Annotation</a>
+  <a href="javascript:addDragIcon('groupboard', 'icons_div');">Group board</a>
+      </center>
+  -->
+  </div>
+
+  <div id="center1" class="x-layout-active-content">
+      <div id="paintarea" style="position:relative;width:3000px;height:3000px;" >
+      </div>
+  </div>
+  <div id="center2" class="x-layout-active-content">
+      <h1>URL to load the topology from</h1>
+      <input type="text" id="json_load_url" size=80></input>
+      <input type="button" value="Load from URL" onClick="doLoadJSONFromURL()"></input>
+      <hr size=1 noshade>
+      <h1>Save to text / load from text</h1>
+      <input type="button" value="Save" onClick="doSaveJSON()"></input>
+      <input type="button" value="Load" onClick="doLoadJSON()"></input>
+      <br/>
+      <h2>JSON</h2>
+      <textarea id='json_text' rows=10 cols=80 style="width: 90%"></textarea>
+      <!-- <div id="json_text"></div> -->
+      <hr size=1 noshade>
+	<pre>
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+	</pre>	
+      <hr size=1 noshade>
+	<h1>How to use</h1>
+	Drag and drop. Connect the blue dots with lines. Doubleclick to add the annotations. 
+	Control-drag the blue dots to clone them. Click on the text links in the "library" to add the icons to the "Icons" tab.
+	"Save" the JSON into the textbox. "Load" JSON from the textbox. Also you can have the JSON on a server and you can "load" it from an URL, like <a href="?url=test.json">this</a>
+
+      <hr size=1 noshade>
+	<h1>About</h1>
+	
+        <p>
+	This little hack is standing on the shoulders of giants: 
+        <ul>
+	<li><a href="http://draw2d.org/">Draw2D library</a></li>
+	<li><a href="http://www.walterzorn.com/">Walter Zorn's JS graphics library</a></li>
+        <li><a href="http://extjs.com/">ExtJS library</a></li>
+	<li><a href="http://www.cisco.com/web/about/ac50/ac47/2.html">Cisco network diagram icons</a></li>
+	</ul>
+	</p>
+      <hr size=1 noshade>
+        The few kilobytes of glue code to make this working together written by Andrew Yourtchenko a while ago in a few evenings.
+I've done this mainly because I wanted to try and see what happens and how it looks like. 
+There are still quite a few relatively cosmetic bugs, but I consider it working "good enough", so most probably won't fix them. If you find something and fix it, feel free to send me the diff to ayourtch [at] gmail, and I'll put it in.
+      <hr size=1 noshade>
+I deliberately coded it in such a way that after the initial loading everything runs only on the client. In any case, if you prefer to be on the safe side, you can download the <a href="../network.tgz">tarball</a> and run it locally.
+      <hr size=1 noshade>
+NB: if you view the source, you will see that I hooked the google analytics - merely for the purposes of looking how much use this page gets, and removing it in case it gets too popular, before the kind guys at employees.org get too much load. The version in the tarball obviously does not have this tracker. 
+      <hr size=1 noshade>
+NB#2: Obviously, if you try to load the JSON over a remote URL, the method of doing that is inherently insecure, so you will first want to visually inspect the content of the URL in the browser - to ensure that the JSON is indeed the only content there.
+      <hr size=1 noshade>
+  </div>
+
+  <div id="debug">
+  </div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-6805938-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+ <script>
+function debug(msg)
+{
+  var console = document.getElementById("debug");
+  console.innerHTML=console.innerHTML+"<br>"+msg;
+}
+  /**********************************************************************************
+   * 
+   * Do the Draw2D Stuff
+   *
+   **********************************************************************************/
+  var workflow  = new Workflow("paintarea");
+//  workflow.setEnableSmoothFigureHandling(true);
+
+  // Add the image node to the canvas
+  //
+  //var startObj = new ResizeImage("Image.gif");
+  //workflow.addFigure(startObj, 200,300);
+
+
+  // Add an simple annotation to the canvas
+  //
+  /*
+  var annotation = new Annotation("NOTE: Drag&Drop the red port to the blue port to create a connection. Use the connection context menu to switch the router implementation.");
+  annotation.setDimension(300,70);
+  workflow.addFigure(annotation,20,50);
+
+  var annotation = new Annotation("NOTE: Drag&Drop the objects from the left hand tool palette to the canvas to insert a new object.");
+  annotation.setDimension(300,70);
+  workflow.addFigure(annotation,20,150);
+
+  var annotation = new Annotation("NOTE: Test the context menu of the blue connections!!!.");
+  annotation.setDimension(300,70);
+  workflow.addFigure(annotation,20,250);
+  */
+
+
+  // Add the start node to the canvas
+  //
+  //var startObj = new Start();
+  //workflow.addFigure(startObj, 450,300);
+
+  // Add the end node to the canvas
+  //
+  //var endObj   = new End();
+  //workflow.addFigure(endObj,600,350);
+
+debug("start");
+  /**********************************************************************************
+   * 
+   * Do the Ext (Yahoo UI) Stuff
+   *
+   **********************************************************************************/
+   Example = function(){
+            var layout;
+            return {
+               init : function(){
+                  layout = new Ext.BorderLayout(document.body, {
+                        west: {
+                           split:true,
+                           initialSize: 202,
+                           minSize: 175,
+                           maxSize: 400,
+                           titlebar: true,
+                           collapsible: true,
+			   collapsed: false,
+                           autoScroll:true,
+			   title: "Elements",
+                           animate: true
+                        },
+                        north: {
+                           initialSize: 100,
+                           split:false,
+                           titlebar: false,
+                           collapsible: true,
+			   collapsed: true,
+                           animate: false
+                        },
+                        south: {
+                           initialSize: 130,
+                           split:false,
+                           titlebar: true,
+                           collapsible: true,
+			   collapsed: true,
+                           autoScroll:true,
+                           animate: true
+                        },
+                        center: {
+                           titlebar: true,
+                           autoScroll:true,
+                           fitToFrame:true
+                  }
+                  });
+
+               layout.beginUpdate();
+  var center = new Ext.ContentPanel('center1', {width:100, height:200, title:'Diagram'});
+                  layout.add('south', new Ext.ContentPanel('debug',    {title: 'Debug Console'}));
+                  layout.add('north', new Ext.ContentPanel('toolbar',    {title: 'South'}));
+                  layout.add('west',  new Ext.ContentPanel('library_div', {title: 'Library'}));
+                  layout.add('west',  new Ext.ContentPanel('icons_div', {title: 'Icons'}));
+                  //layout.add('west',  new Ext.ContentPanel(createNewIconDiv("icons_1"), {title: 'Type ' + i}));
+                  layout.add('center',  new Ext.ContentPanel('center2', {title: 'Save/Load'}));
+                  layout.add('center',center);
+               layout.endUpdate();
+               workflow.scrollArea = document.getElementById("center1").parentNode;
+               //var dragsource=new Ext.dd.DragSource("drag_XXX", {ddGroup:'TreeDD',dragData:{name: "Start"}}); 
+               //var dragsource=new Ext.dd.DragSource("dragMe2", {ddGroup:'TreeDD',dragData:{name: "End"}}); 
+               //var dragsource=new Ext.dd.DragSource("dragMe3", {ddGroup:'TreeDD',dragData:{name: "router"}}); 
+               //var dragsource=new Ext.dd.DragSource('drag_Start', {ddGroup:'TreeDD',dragData:{name: 'Start'}});
+  //var dragsource=new Ext.dd.DragSource('drag_End', {ddGroup:'TreeDD',dragData:{name: 'End'}});
+
+addLibraryIconText('a100baset_hub'); addLibraryIcon('a100baset_hub');
+
+addLibraryIconText('access_gateway');
+addLibraryIconText('accesspoint');
+addLibraryIconText('ace');
+addLibraryIconText('adm');
+addLibraryIconText('androgynous_person');
+addLibraryIconText('antenna');
+addLibraryIconText('asa'); addLibraryIcon('asa');
+
+addLibraryIconText('asic_processor');
+addLibraryIconText('ata');
+addLibraryIconText('atm_3800');
+addLibraryIconText('atm_fast_gb_ethsw');
+addLibraryIconText('atm_router');
+addLibraryIconText('atm_switch');
+addLibraryIconText('atm_tag_sw_rtr');
+addLibraryIconText('avs');
+addLibraryIconText('bbfw');
+addLibraryIconText('bbs');
+addLibraryIconText('bbsm');
+addLibraryIconText('branch_office');
+addLibraryIconText('breakout_box');
+addLibraryIconText('bridge');
+addLibraryIconText('broadband_router');
+addLibraryIconText('bts10200');
+addLibraryIconText('c10700');
+addLibraryIconText('c15200');
+addLibraryIconText('c3200_mobile_access_router');
+addLibraryIconText('c3x74_desktop');
+addLibraryIconText('c3x74_floor');
+addLibraryIconText('c6700');
+addLibraryIconText('c7513');
+addLibraryIconText('cable_modem');
+addLibraryIconText('cache_director');
+addLibraryIconText('callmanager');
+addLibraryIconText('callmanager2');
+addLibraryIconText('car');
+addLibraryIconText('carrier_routing_system');
+addLibraryIconText('catalyst_access_gateway');
+addLibraryIconText('cddi_fddi_concentrator');
+addLibraryIconText('cdm');
+addLibraryIconText('cellular_phone');
+addLibraryIconText('cellular_phone2');
+addLibraryIconText('centri_firewall');
+addLibraryIconText('cisco_1000');
+addLibraryIconText('cisco_asa_5500');
+addLibraryIconText('cisco_file_engine');
+addLibraryIconText('cisco_hub');
+addLibraryIconText('cisco_unified_presence_server');
+addLibraryIconText('cisco_unityexpress');
+addLibraryIconText('ciscoca');
+addLibraryIconText('ciscosecurity');
+addLibraryIconText('ciscoworks_workstation');
+addLibraryIconText('class4_5_switch');
+addLibraryIconText('cloud_filled'); addLibraryIcon('cloud_filled');
+
+addLibraryIconText('cloud_line');
+addLibraryIconText('cluster_controller_3174');
+addLibraryIconText('communication_server');
+addLibraryIconText('concentrator');
+addLibraryIconText('contact_center');
+addLibraryIconText('content_engine');
+addLibraryIconText('content_service_router');
+addLibraryIconText('content_switch');
+addLibraryIconText('content_switch_11000');
+addLibraryIconText('content_switch_module');
+addLibraryIconText('cs_mars');
+addLibraryIconText('csm_s');
+addLibraryIconText('csu_dsu');
+addLibraryIconText('cte');
+addLibraryIconText('detector');
+addLibraryIconText('director_class_fibre_channel_director');
+addLibraryIconText('directoryserver');
+addLibraryIconText('disk_subsystem');
+addLibraryIconText('diskette');
+addLibraryIconText('distributed_director');
+addLibraryIconText('dpt');
+addLibraryIconText('dslam');
+addLibraryIconText('dual_mode_ap');
+addLibraryIconText('dwdm_filter');
+addLibraryIconText('end');
+addLibraryIconText('end_office');
+addLibraryIconText('fax');
+addLibraryIconText('fc_storage');
+addLibraryIconText('fddi_ring');
+addLibraryIconText('fibre_channel_fabric_switch');
+addLibraryIconText('file_cabinet');
+addLibraryIconText('file_server');
+addLibraryIconText('file_server2');
+addLibraryIconText('firewall');
+addLibraryIconText('front_end_processor');
+addLibraryIconText('fwsm');
+addLibraryIconText('gatekeeper');
+addLibraryIconText('general_appliance');
+addLibraryIconText('general_processor');
+addLibraryIconText('generic_building');
+addLibraryIconText('generic_gateway');
+addLibraryIconText('gigabit_switch_router');
+addLibraryIconText('gigabit_switch_router_m');
+addLibraryIconText('government_building');
+addLibraryIconText('groupboard');
+addLibraryIconText('guard');
+addLibraryIconText('h.323');
+addLibraryIconText('handheld');
+addLibraryIconText('hootphone');
+addLibraryIconText('host');
+addLibraryIconText('host_generic');
+addLibraryIconText('hp_mini');
+addLibraryIconText('hub');
+addLibraryIconText('iad_router');
+addLibraryIconText('ibm_fep');
+addLibraryIconText('ibm_mainframe');
+addLibraryIconText('ibm_mini_as400');
+addLibraryIconText('ibm_tower');
+addLibraryIconText('icm');
+addLibraryIconText('ics');
+addLibraryIconText('intelliswitch_stack');
+addLibraryIconText('ios_firewall');
+addLibraryIconText('ios_slb');
+addLibraryIconText('ip');
+addLibraryIconText('ip_communicator');
+addLibraryIconText('ip_dsl');
+addLibraryIconText('ip_phone');
+addLibraryIconText('ip_softphone');
+addLibraryIconText('ip_telephony_router');
+addLibraryIconText('iptc');
+addLibraryIconText('iptv_broadcast_server');
+addLibraryIconText('iptv_content_manager');
+addLibraryIconText('iscsi_router');
+addLibraryIconText('isdn_switch');
+addLibraryIconText('itp');
+addLibraryIconText('jbod');
+addLibraryIconText('key_mkt');
+addLibraryIconText('lan2lan');
+addLibraryIconText('lan2lan2');
+addLibraryIconText('laptop'); addLibraryIcon('laptop');
+
+addLibraryIconText('laptop2');
+addLibraryIconText('layer_2_remote_switch');
+addLibraryIconText('layer_3_switch'); addLibraryIcon('layer_3_switch');
+
+addLibraryIconText('lightweight_ap');
+addLibraryIconText('local_director');
+addLibraryIconText('lock');
+addLibraryIconText('longreach_cpe');
+addLibraryIconText('mac_woman');
+addLibraryIconText('macintosh');
+addLibraryIconText('man_woman');
+addLibraryIconText('mas_gateway');
+addLibraryIconText('mau');
+addLibraryIconText('mcu');
+addLibraryIconText('mdu');
+addLibraryIconText('me1100');
+addLibraryIconText('meetingplace');
+addLibraryIconText('mesh_ap');
+addLibraryIconText('metro1500');
+addLibraryIconText('mgx_8000_multiservice_switch');
+addLibraryIconText('microphone');
+addLibraryIconText('microwebserver');
+addLibraryIconText('mini_or_vax_vms');
+addLibraryIconText('mobile_access_ip_phone');
+addLibraryIconText('mobile_access_router');
+addLibraryIconText('modem');
+addLibraryIconText('moh_server');
+addLibraryIconText('multi_fabric_server_switch');
+addLibraryIconText('multilayer_remote_switch');
+addLibraryIconText('multilayer_switch');
+addLibraryIconText('multiswdevice');
+addLibraryIconText('mux');
+addLibraryIconText('nac_appliance');
+addLibraryIconText('netflow');
+addLibraryIconText('netranger');
+addLibraryIconText('netsonar');
+addLibraryIconText('network_management');
+addLibraryIconText('octel');
+addLibraryIconText('ons15500');
+addLibraryIconText('optical_amplifier');
+addLibraryIconText('optical_services_router');
+addLibraryIconText('optical_tranport');
+addLibraryIconText('pad');
+addLibraryIconText('pad_x');
+addLibraryIconText('page_icon');
+addLibraryIconText('pbx');
+addLibraryIconText('pbx_switch');
+addLibraryIconText('pc');
+addLibraryIconText('pc_adapter_card_mkt');
+addLibraryIconText('pc_man');
+addLibraryIconText('pc_router_card');
+addLibraryIconText('pc_software');
+addLibraryIconText('pc_sw_mkt');
+addLibraryIconText('pda');
+addLibraryIconText('phone');
+addLibraryIconText('phone_fax');
+addLibraryIconText('pix');
+addLibraryIconText('printer');
+addLibraryIconText('programmable_sw');
+addLibraryIconText('protocol_translator');
+addLibraryIconText('pxf');
+addLibraryIconText('radio_tower');
+addLibraryIconText('ratemux');
+addLibraryIconText('relational_database');
+addLibraryIconText('repeater');
+addLibraryIconText('route_switch_processor');
+addLibraryIconText('router'); addLibraryIcon('router');
+
+addLibraryIconText('router_in_building');
+addLibraryIconText('router_w_firewall');
+addLibraryIconText('router_w_silicon_switch');
+addLibraryIconText('rps');
+addLibraryIconText('running_man');
+addLibraryIconText('satellite');
+addLibraryIconText('satellite_dish');
+addLibraryIconText('scanner');
+addLibraryIconText('server_switch');
+addLibraryIconText('server_w_pc_router');
+addLibraryIconText('service_control');
+addLibraryIconText('sip_proxy_server');
+addLibraryIconText('sitting_woman');
+addLibraryIconText('small_business');
+addLibraryIconText('small_hub');
+addLibraryIconText('softphone');
+addLibraryIconText('softswitch_pgw_mgc');
+addLibraryIconText('speaker');
+addLibraryIconText('ssc');
+addLibraryIconText('ssl_terminator');
+addLibraryIconText('standard_host');
+addLibraryIconText('standing_man_icon');
+addLibraryIconText('standing_woman');
+addLibraryIconText('start');
+addLibraryIconText('stb');
+addLibraryIconText('storage_array');
+addLibraryIconText('storage_router');
+addLibraryIconText('stp');
+addLibraryIconText('streamer');
+addLibraryIconText('sun_workstation');
+addLibraryIconText('supercomputer');
+addLibraryIconText('svx');
+addLibraryIconText('sw_based_pc');
+addLibraryIconText('sw_based_server');
+addLibraryIconText('system_controller');
+addLibraryIconText('tablet');
+addLibraryIconText('tape_array');
+addLibraryIconText('tdm_router');
+addLibraryIconText('telecommuter_house');
+addLibraryIconText('telecommuter_icon');
+addLibraryIconText('terminal');
+addLibraryIconText('terminal_server');
+addLibraryIconText('token_ring');
+addLibraryIconText('transpath');
+addLibraryIconText('truck');
+addLibraryIconText('turret');
+addLibraryIconText('tv');
+addLibraryIconText('ubr910');
+addLibraryIconText('umg_series');
+addLibraryIconText('unity_server');
+addLibraryIconText('university');
+addLibraryIconText('unversal_gateway');
+addLibraryIconText('upc');
+addLibraryIconText('ups');
+addLibraryIconText('vault');
+addLibraryIconText('video_camera');
+addLibraryIconText('vip');
+addLibraryIconText('virtual_layer_switch');
+addLibraryIconText('virtual_switch_cntrlr');
+addLibraryIconText('voice_gateway');
+addLibraryIconText('voice_switch');
+addLibraryIconText('voiceatm_switch');
+addLibraryIconText('voiceenable_comsvr');
+addLibraryIconText('voiceenable_rtr');
+addLibraryIconText('vpn_concentrator');
+addLibraryIconText('vpn_gateway');
+addLibraryIconText('vsc_3000_virtual_switch_contrlr');
+addLibraryIconText('wae');
+addLibraryIconText('wan');
+addLibraryIconText('wavelength_router');
+addLibraryIconText('web_browser');
+addLibraryIconText('web_cluster_g');
+addLibraryIconText('web_server'); addLibraryIcon('web_server');
+
+addLibraryIconText('wi_fi_tag');
+addLibraryIconText('wireless');
+addLibraryIconText('wireless_bridge');
+addLibraryIconText('wireless_location_appliance');
+addLibraryIconText('wireless_router');
+addLibraryIconText('wireless_transport');
+addLibraryIconText('wism');
+addLibraryIconText('wlan_controller');
+addLibraryIconText('workgroup_director');
+addLibraryIconText('workgroup_switch');
+addLibraryIconText('workstation'); addLibraryIcon('workstation');
+
+//addDragIcon('Start', 'icons_div');
+//addDragIcon('End', 'icons_div');
+               var droptarget=new Ext.dd.DropTarget("center1",{ddGroup:'TreeDD'});
+                   droptarget.notifyDrop=function(dd, e, data)
+                   {
+                        if(data.name)
+                        {
+                           var xOffset    = workflow.getAbsoluteX();
+                           var yOffset    = workflow.getAbsoluteY();
+                           var scrollLeft = workflow.getScrollLeft();
+                           var scrollTop  = workflow.getScrollTop();
+                           if(typeof(data.pic) != "undefined") {
+			     var el = document.getElementById("drag_" + data.type);
+			     var aWidth = 32;
+			     var aHeight = 32;
+			     if (el) {
+			       aWidth = el.width;
+			       aHeight = el.height;
+			     }
+			     var aFig = eval("new "+data.name+"()");
+			     aFig.setDimension(aWidth, aHeight);
+			     aFig.setPic(data.pic);
+			     aFig.subtype = data.type;
+
+                             workflow.addFigure(aFig,e.xy[0]-xOffset+scrollLeft,e.xy[1]-yOffset+scrollTop);
+
+			   } else {
+                             workflow.addFigure(eval("new "+data.name+"()"),e.xy[0]-xOffset+scrollLeft,e.xy[1]-yOffset+scrollTop);
+			   }
+                           return true;
+                        }
+                   }
+                   var aJSON = getQueryVariable("url");
+                   if(aJSON != "") {
+                       loadJSON(aJSON);
+                   }
+               }
+
+         };
+
+   }();
+   Ext.EventManager.onDocumentReady(Example.init, Example, true);
+   var simpleToolbar = new Ext.Toolbar('toolbar');
+   //var simpleToolbar = new Ext.Toolbar('debug');
+   //simpleToolbar.addButton({ text: 'Export', cls: 'x-btn-text-icon scroll-bottom', handler: doXmlExport });
+   //simpleToolbar.addButton({ text: 'Import', cls: 'x-btn-text-icon scroll-bottom', handler: doXmlImport });
+   //workflow.setGridWidth(10,10);
+   //workflow.setSnapToGrid(true);
+
+
+</script>
+</body>
+</html>
