@@ -211,11 +211,15 @@ function doSaveJSON()
 
 function doLoadJSONFromURL()
 {
+	document.getElementById('paintarea').innerHTML = "";
+	workflow = new Workflow('paintarea');
   loadJSON(document.getElementById('json_load_url').value);
 }
 
 function doLoadJSON()
 {
+	document.getElementById('paintarea').innerHTML = "";
+	workflow = new Workflow('paintarea');
   loadJSONtext(document.getElementById('json_text').value);
 }
 
