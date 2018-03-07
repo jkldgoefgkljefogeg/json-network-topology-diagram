@@ -244,6 +244,20 @@ this.addPort(this.inputPort3,this.width,this.height/2);
 this.inputPort4=new MyInputPort();
 this.inputPort4.setWorkflow(_3a5c);
 this.addPort(this.inputPort4,this.width/2,this.height);
+
+this.inputPort5=new MyInputPort();
+this.inputPort5.setWorkflow(_3a5c);
+this.addPort(this.inputPort5,this.width,this.height);
+this.inputPort6=new MyInputPort();
+this.inputPort6.setWorkflow(_3a5c);
+this.addPort(this.inputPort6,0,this.height);
+this.inputPort7=new MyInputPort();
+this.inputPort7.setWorkflow(_3a5c);
+this.addPort(this.inputPort7,this.width,0);
+this.inputPort8=new MyInputPort();
+this.inputPort8.setWorkflow(_3a5c);
+this.addPort(this.inputPort8,0,0);
+
 this.workflow.addSelectionListener(this);
 //workflow.addFigure(this.annotation,this.getX(),this.getY());
 };
@@ -301,6 +315,14 @@ if(oThis.inputPort3.annotation != undefined)
 	workflow.commandStack.execute(new CommandDelete(oThis.inputPort3.annotation));
 if(oThis.inputPort4.annotation != undefined)
 	workflow.commandStack.execute(new CommandDelete(oThis.inputPort4.annotation));
+if(oThis.inputPort5.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort5.annotation));
+if(oThis.inputPort6.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort6.annotation));
+if(oThis.inputPort7.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort7.annotation));
+if(oThis.inputPort8.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort8.annotation));
 //oThis.getParent().removePort(oThis);
 }));
 return menu;
