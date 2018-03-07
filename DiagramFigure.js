@@ -102,11 +102,11 @@ Node.prototype.addAnnotation = function(aForWhat, aText, aAnnX, aAnnY) {
       }
       while(i<this.TheTarget.annotations.length) {
         var ann2 = this.TheTarget.annotations[i];
-	if (ann2 == this) {
-	  this.TheTarget.annotations.splice(i,1);
-	} else {
-	  i++;
-	}
+		if (ann2 == this) {
+		  this.TheTarget.annotations.splice(i,1);
+		} else {
+		  i++;
+		}
       }
       this.workflow.commandStack.execute(new CommandDelete(this));
     }
@@ -244,13 +244,49 @@ this.addPort(this.inputPort3,this.width,this.height/2);
 this.inputPort4=new MyInputPort();
 this.inputPort4.setWorkflow(_3a5c);
 this.addPort(this.inputPort4,this.width/2,this.height);
+
+this.inputPort5=new MyInputPort();
+this.inputPort5.setWorkflow(_3a5c);
+this.addPort(this.inputPort5,this.width,this.height);
+this.inputPort6=new MyInputPort();
+this.inputPort6.setWorkflow(_3a5c);
+this.addPort(this.inputPort6,0,this.height);
+this.inputPort7=new MyInputPort();
+this.inputPort7.setWorkflow(_3a5c);
+this.addPort(this.inputPort7,this.width,0);
+this.inputPort8=new MyInputPort();
+this.inputPort8.setWorkflow(_3a5c);
+this.addPort(this.inputPort8,0,0);
+
 this.workflow.addSelectionListener(this);
 //workflow.addFigure(this.annotation,this.getX(),this.getY());
 };
 };
-
+DiagramFigure.prototype.onKeyDown=function(_3831,ctrl){
+	console.log(_3831);
+	console.log(ctrl);
+    /*if(_3831==46&&this.isDeleteable()==true){
+      var i=0;
+      if (this.forWhat.annotation == ann) {
+        this.forWhat.annotation = null;
+      }
+      while(i<this.TheTarget.annotations.length) {
+        var ann2 = this.TheTarget.annotations[i];
+		if (ann2 == this) {
+		  this.TheTarget.annotations.splice(i,1);
+		} else {
+		  i++;
+		}
+      }
+      this.workflow.commandStack.execute(new CommandDelete(this));
+    }
+    if(ctrl){
+      this.workflow.onKeyDown(_3831,ctrl);
+    }*/
+  };
 DiagramFigure.prototype.getContextMenu=function(){
 var menu=new Menu();
+
 /*
 var oThis=this;
 menu.appendMenuItem(new MenuItem("NULL Router",null,function(){
@@ -266,6 +302,29 @@ menu.appendMenuItem(new MenuItem("Fan Router",null,function(){
 oThis.setRouter(new FanConnectionRouter());
 }));
 */
+var oThis=this;
+menu.appendMenuItem(new MenuItem("Delete",null,function(){
+
+workflow.commandStack.execute(new CommandDelete(oThis));
+workflow.commandStack.execute(new CommandDelete(oThis.annotation));
+if(oThis.inputPort.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort.annotation));
+if(oThis.inputPort2.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort2.annotation));
+if(oThis.inputPort3.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort3.annotation));
+if(oThis.inputPort4.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort4.annotation));
+if(oThis.inputPort5.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort5.annotation));
+if(oThis.inputPort6.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort6.annotation));
+if(oThis.inputPort7.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort7.annotation));
+if(oThis.inputPort8.annotation != undefined)
+	workflow.commandStack.execute(new CommandDelete(oThis.inputPort8.annotation));
+//oThis.getParent().removePort(oThis);
+}));
 return menu;
 };
 

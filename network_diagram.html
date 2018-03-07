@@ -135,7 +135,7 @@ function loadJSON(aFile)
   });
 }
 
-function addDragIcon(aName, aWhere) 
+/*function addDragIcon(aName, aWhere) 
 {
   loadJavaScript("icons/" + aName + ".js", function() { 
      if (document.getElementById("cont_" + aName)) {
@@ -149,9 +149,9 @@ function addDragIcon(aName, aWhere)
      div.appendChild(cdiv);
      var dragsource=new Ext.dd.DragSource('drag_' + aName, {ddGroup:'TreeDD',dragData:{name: aName}});
      } );
-}
+}*/
 
-function addDragIconPic(aName, aWhere, aPic) 
+function addDragIconPic(aName, aWhere, aPic, aDisplay) 
 {
      if (document.getElementById("cont_" + aName)) {
        return;
@@ -160,7 +160,7 @@ function addDragIconPic(aName, aWhere, aPic)
      var cdiv = createNewDiv("cont_" + aName);
      var html = '';
      html = html + "<center>";
-     html = html + "<h1>" + aName + "</h1>\n";
+     html = html + "<h1>" + aDisplay + "</h1>\n";
      html = html + "<img src='" + aPic + "' id='drag_" + aName + "' style='cursor:move'/>\n";
      html = html + "<hr size=1 noshade>\n";
      html = html + "</center>";
@@ -171,15 +171,16 @@ function addDragIconPic(aName, aWhere, aPic)
 
 }
 
-function addDragIcon2(aName, aWhere)
+function addDragIcon2(aName, aWhere, aDisplay)
 {
   var aPic = "icons/" + aName + ".png";
-  addDragIconPic(aName, aWhere, aPic);
+  addDragIconPic(aName, aWhere, aPic, aDisplay);
 }
 
-function addLibraryIcon(aName)
+function addLibraryIcon(aName, aDisplay)
 {
-  addDragIcon2(aName, "icons_div");
+	if(aDisplay == undefined) aDisplay = aName;
+  addDragIcon2(aName, "icons_div", aDisplay);
 }
 
 function addLibraryIconText(aName) 
@@ -211,11 +212,15 @@ function doSaveJSON()
 
 function doLoadJSONFromURL()
 {
+	document.getElementById('paintarea').innerHTML = "";
+	workflow = new Workflow('paintarea');
   loadJSON(document.getElementById('json_load_url').value);
 }
 
 function doLoadJSON()
 {
+	document.getElementById('paintarea').innerHTML = "";
+	workflow = new Workflow('paintarea');
   loadJSONtext(document.getElementById('json_text').value);
 }
 
@@ -430,7 +435,7 @@ debug("start");
                //var dragsource=new Ext.dd.DragSource('drag_Start', {ddGroup:'TreeDD',dragData:{name: 'Start'}});
   //var dragsource=new Ext.dd.DragSource('drag_End', {ddGroup:'TreeDD',dragData:{name: 'End'}});
 
-addLibraryIconText('a100baset_hub'); addLibraryIcon('a100baset_hub');
+addLibraryIconText('a100baset_hub');
 
 addLibraryIconText('access_gateway');
 addLibraryIconText('accesspoint');
@@ -438,7 +443,7 @@ addLibraryIconText('ace');
 addLibraryIconText('adm');
 addLibraryIconText('androgynous_person');
 addLibraryIconText('antenna');
-addLibraryIconText('asa'); addLibraryIcon('asa');
+addLibraryIconText('asa'); addLibraryIcon('asa', 'Physical Node');
 
 addLibraryIconText('asic_processor');
 addLibraryIconText('ata');
@@ -485,7 +490,7 @@ addLibraryIconText('ciscoca');
 addLibraryIconText('ciscosecurity');
 addLibraryIconText('ciscoworks_workstation');
 addLibraryIconText('class4_5_switch');
-addLibraryIconText('cloud_filled'); addLibraryIcon('cloud_filled');
+addLibraryIconText('cloud_filled'); addLibraryIcon('cloud_filled', 'Internet');
 
 addLibraryIconText('cloud_line');
 addLibraryIconText('cluster_controller_3174');
@@ -566,11 +571,11 @@ addLibraryIconText('jbod');
 addLibraryIconText('key_mkt');
 addLibraryIconText('lan2lan');
 addLibraryIconText('lan2lan2');
-addLibraryIconText('laptop'); addLibraryIcon('laptop');
+addLibraryIconText('laptop'); addLibraryIcon('laptop', 'Kali');
 
 addLibraryIconText('laptop2');
 addLibraryIconText('layer_2_remote_switch');
-addLibraryIconText('layer_3_switch'); addLibraryIcon('layer_3_switch');
+addLibraryIconText('layer_3_switch'); addLibraryIcon('layer_3_switch', 'Windows 7');
 
 addLibraryIconText('lightweight_ap');
 addLibraryIconText('local_director');
@@ -634,7 +639,7 @@ addLibraryIconText('ratemux');
 addLibraryIconText('relational_database');
 addLibraryIconText('repeater');
 addLibraryIconText('route_switch_processor');
-addLibraryIconText('router'); addLibraryIcon('router');
+addLibraryIconText('router'); addLibraryIcon('router', 'Router');
 
 addLibraryIconText('router_in_building');
 addLibraryIconText('router_w_firewall');
@@ -708,7 +713,7 @@ addLibraryIconText('wan');
 addLibraryIconText('wavelength_router');
 addLibraryIconText('web_browser');
 addLibraryIconText('web_cluster_g');
-addLibraryIconText('web_server'); addLibraryIcon('web_server');
+addLibraryIconText('web_server'); addLibraryIcon('web_server', 'Windows 10');
 
 addLibraryIconText('wi_fi_tag');
 addLibraryIconText('wireless');
@@ -720,7 +725,7 @@ addLibraryIconText('wism');
 addLibraryIconText('wlan_controller');
 addLibraryIconText('workgroup_director');
 addLibraryIconText('workgroup_switch');
-addLibraryIconText('workstation'); addLibraryIcon('workstation');
+addLibraryIconText('workstation'); addLibraryIcon('workstation', 'Ubuntu 16');
 
 //addDragIcon('Start', 'icons_div');
 //addDragIcon('End', 'icons_div');
